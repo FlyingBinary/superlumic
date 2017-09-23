@@ -1,0 +1,72 @@
+#!/bin/bash -v
+
+if [ "$1" != "grant" ] && [ "$1" != "revoke" ]; then
+    echo "Usage: ${0##*/} grant|revoke username adminusername" >&2
+    echo "       grant  - add user to the admin group using admin credentials" >&2
+    echo "       revoke - remove user from the admin group using admin credentials" >&2
+    exit 64
+fi
+
+# Don't need su privilege to read the GeneratedUID
+# echo "Enter su password"
+# this_guid=$(su snowman -c "dscl . -read /Users/$this_user GeneratedUID | cut -f 2 -d ' '")
+# this_guid=$(echo $this_guid | sed "s/\(.*\):\(.*\)/\2/")
+#    guid=
+#    if dscl . -read /Users/$2 UniqueID >/dev/null 2>&1
+#    then
+#        guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
+#    else
+#        echo "Could not find user $2 - exiting"
+#        exit 1
+#    fi
+
+if [ -z $2 ]; then
+    echo "Please provide a user name" >&2
+    exit 62
+fi
+
+if [ -z $3 ]; then
+    echo "Please provide an admin user name" >&2
+    exit 63
+fi
+
+guid=
+if checkuserq exists $2; then
+    guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
+else
+    echo "Could not find user '$2' - exiting" >&2
+    exit 2
+fi
+
+if [ "$1" == "grant" ]; then
+    if checkuserq member $2 admin; then
+        echo "User '$2' is already a member of admin group"
+        exit 3
+    fi
+    echo "Adding '$2' to admin group with '$3'"
+    echo "You may need to enter your su password twice"
+    su $3 -c "sudo dscl . -append /Groups/admin GroupMembers $guid"
+    if checkuserq member $2 admin; then
+        echo "YES: User '$2' is now a member of admin group"
+        exit 0
+    else
+        echo "NO: User '$2' was not added to the admin group"
+        exit 1
+    fi
+else
+    if ! checkuserq member $2 admin; then
+        echo "User '$2' is not a member of admin group"
+        exit 3
+    fi
+    echo "Removing '$2' from admin group with '$3'"
+    echo "You may need to enter your su password twice"
+    su $3 -c "sudo dscl . -delete /Groups/admin GroupMembers $guid"
+    if ! checkuserq member $2 admin; then
+        echo "YES: User '$2' in no longer a member of admin group"
+        exit 0
+    else
+        echo "NO: User '$2' was not removed from the admin group"
+        exit 1
+    fi
+fi
+exit $?

@@ -1,0 +1,94 @@
+#!/bin/bash -v
+
+PASSWORD=ChangeM3.
+
+if [ "${0##*/}" == "createadministratorq" ]; then quiet=true; else quiet=false; fi
+
+function printMessage {
+    if ! "$quiet"; then
+        out=$2
+        if [ -z $out ]; then
+            out=1
+        fi
+        if [ $out == 1 ]; then
+            echo $1 >&1
+        else
+            echo $1 >&2
+        fi
+        return 0
+    else
+        return 1
+    fi
+}
+
+function oneCommand {
+    # oneCommand command failmessage exitcode
+    echo "$1"
+    `$1`
+    status=$?
+    echo "status=[$status]"
+    if [[ $status -gt 0 ]]; then
+        echo "exit with status [$2]"
+        printMessage "FAILED: $2" 2
+        exit $3
+    fi
+}
+
+if [ -z $1 ]; then
+    printMessage "Usage: ${0##*/} username uniqueid realname [picture]" 2
+    exit 64
+fi
+
+if [ -z $2 ] || [[ ! $2 =~ ^4[0-9][1-9]$ ]]; then
+    printMessage "Please provide a unique user id in the range 401-499" 2
+    exit 65
+fi
+
+if [ -z "$3" ]; then
+    printMessage "Please provide a real user name" 2
+    exit 66
+fi
+
+if [ ! -z "$4" ]; then
+    if [ ! -f "$4" ]; then
+        printMessage "Please provide a valid picture file name, or omit this parameter" 2
+        exit 67
+    fi
+fi
+
+if checkuserq exists $1; then
+    printMessage "User '$1' already exists" 2
+    if checkuserq member $1 admin; then
+        printMessage "YES: User '$1' is a member of the admin group" 2
+    else
+        printMessage "NO: User '$1' is not a member of the admin group" 2
+    fi
+    exit 2
+fi
+
+# Create the user
+oneCommand "sudo dscl . -create /Users/$1 UniqueID $2" "Create unique id" 68
+oneCommand "sudo dscl . -create /Users/$1 RealName \"$3\"" "Set real name" 69
+if [ ! -z "$4" ]; then
+    oneCommand "sudo dscl . -create /Users/$1 Picture \"$4\"" "Set user picture" 70
+fi
+oneCommand "sudo dscl . -passwd /Users/$1 $PASSWORD" "Set user password" 71
+printMessage "User '$1' created with default password $PASSWORD"
+printMessage "Change the password immediately"
+
+# Set group membership
+guid=$(sudo dscl . -read /Users/$1 GeneratedUID | cut -f 2 -d ' ')
+oneCommand "sudo dscl . -create /Users/$1 PrimaryGroupID 20" "Set primary group" 72
+# oneCommand "sudo dscl . append /Groups/admin GroupMembership $1" "Add to admin group" 73
+oneCommand "sudo dscl . -append /Groups/admin GroupMembers $guid" "Add to admin group" 73
+printMessage "User '$1' added to staff and admin groups"
+
+# Set up home directory and user shell
+oneCommand "sudo mkdir /var/$1" "Create home directory" 74
+oneCommand "sudo chown -R $1 /var/$1" "Set home directory ownership" 75
+oneCommand "sudo dscl . -create /Users/$1 NFSHomeDirectory /var/$1" "Set home directory" 76
+oneCommand "sudo dscl . -create /Users/$1 UserShell /bin/bash" "Set user shell" 77
+printMessage "Home directory and user shell set for user '$1'"
+printMessage "User '$1' setup completed"
+
+exit 0

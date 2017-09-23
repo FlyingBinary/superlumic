@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -v
 
 BGreen='\e[1;32m'       # Green
 BRed='\e[1;31m'         # Red
@@ -12,7 +12,7 @@ printf "${BGreen} /_______  /____/|   __/ \___  >__|  |____/____/|__|_|  /__|\__
 printf "${BGreen}         \/      |__|        \/ http://superlumic.com \/        \/ ${Color_Off}\n\n"
 
 function setStatusMessage {
-    printf "${IRed} --> ${BGreen}$1${Color_Off}\n" 1>&2
+    printf "${BGreen} --> $1 ${Color_Off}\n" 1>&2
 }
 
 function triggerError {
@@ -28,6 +28,16 @@ function exists {
   else
     return 1
   fi
+}
+
+HOMEHELPDIR=~/.superlumic
+SCRIPTDIR=/usr/local/superlumic/scripts
+REPOURL=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/helpers
+
+
+function getHelper {
+    sudo curl -s $REPOURL/$1 > $HOMEHELPDIR/$1
+    sudo chmod 755 $HOMEHELPDIR/$1
 }
 
 # credits https://github.com/boxcutter/osx/blob/master/script/xcode-cli-tools.sh
@@ -66,56 +76,14 @@ function install_clt {
     fi
 }
 
-# Check whether a user exists - returns 0 if it does, 1 if it does not
-function userExists {
-    if dscl . -read /Users/$1 UniqueID >/dev/null 2>&1
-    then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Create an admin user with details from local config file
-function createUser {
-    # createUser $adminUsername $adminUID $adminRealname $adminPicture
-    # Create the user
-    sudo dscl . -create /Users/$1 UniqueID $2
-    sudo dscl . -create /Users/$1 PrimaryGroupID 20
-    sudo dscl . -create /Users/$1 NFSHomeDirectory /var/$1
-    sudo dscl . -create /Users/$1 UserShell /bin/bash
-    sudo dscl . -create /Users/$1 RealName "$3"
-    sudo dscl . -create /Users/$1 Picture "$4"
-    sudo dscl . -passwd /Users/$1 ChangeM3.
-
-    # Create the user's home folder and own it to the new user
-    sudo mkdir /var/$1
-    sudo chown -R $1 /var/$1
-
-    # Add the user into the Local Admin group
-    sudo dscl . append /Groups/admin GroupMembership $1
-}
-
-# Add or remove the user from the admin group
-# Using the admin user's privilege
-function makeMe {
-    # makeMe strong|weak "$username" "$adminUsername"
-    guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
-    if [ "$1" == "strong" ]; then
-        echo "Adding $2:$guid to admin group with $3"
-        echo "You may need to enter your su password twice"
-        su $3 -c "sudo dscl . -append /Groups/admin GroupMembers $guid"
-    else
-        echo "Removing $2:$guid from admin group with $3"
-        echo "You may need to enter your su password twice"
-        su $3 -c "sudo dscl . -delete /Groups/admin GroupMembers $guid"
-    fi
-}
-
 repo=$1
-username=$USER
+profile=$USER
 if [ ! -z "$2" ]; then
-    username=$2
+    profile=$2
+fi
+
+if [ ! -z "$3" ]; then
+    username=$3
 fi
 
 admin=
@@ -129,14 +97,19 @@ fi
 
 if [ ! -z "$admin" ]; then
     source "/Volumes/Superlumic/admin.cfg"
-    if userExists $adminUsername; then
+    mkdir -p $HOMEHELPDIR
+    getHelper suboostrap
+    getHelper getscripts
+    $HOMEHELPDIR/subootstrap
+    cd /usr/local/superlumic
+    if $SCRIPTDIR/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
         setStatusMessage "Granting admin privilege"
-        makeMe "strong" "$username" "$adminUsername"
+        $SCRIPTDIR/adminuser "grant" "$username" "$adminUsername"
     else
         setStatusMessage "Creating admin user "
-        createUser $adminUsername $adminUID $adminRealname $adminPicture
+        $SCRIPTDIR/createadministrator $adminUsername $adminUID $adminRealname $adminPicture
     fi
 fi
 
@@ -198,19 +171,19 @@ setStatusMessage "Get all the required roles"
 
 ansible-galaxy install -f -r config/requirements.yml -p roles
 
-if [ -f "config/$username.yml" ]; then
-    setStatusMessage "Running the ansible playbook for $username"
-    ansible-playbook -i "localhost," config/$username.yml
+if [ -f "config/$profile.yml" ]; then
+    setStatusMessage "Running the ansible playbook for $profile"
+    ansible-playbook -i "localhost," config/$profile.yml
 else
-    if [ "travis" = "$username" ]; then
-        setStatusMessage "Running the ansible playbook for $username but use roderik.yml as fallback"
+    if [ "travis" = "$profile" ]; then
+        setStatusMessage "Running the ansible playbook for $profile but use roderik.yml as fallback"
         ansible-playbook -i "localhost," config/roderik.yml
     else
-        triggerError "No playbook for $username found"
+        triggerError "No playbook for $profile found"
     fi
 fi
 
 if [ ! -z "$admin" ]; then
     setStatusMessage "Revoking admin privilege"
-    makeMe "weak" "$username" "$adminUsername"
+    $SCRIPTDIR/adminuser "revoke" "$username" "$adminUsername"
 fi
