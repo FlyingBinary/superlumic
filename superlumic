@@ -98,7 +98,7 @@ fi
 if [ ! -z "$admin" ]; then
     source "/Volumes/Superlumic/admin.cfg"
     mkdir -p $HOMEHELPDIR
-    getHelper suboostrap
+    getHelper subootstrap
     getHelper getscripts
     $HOMEHELPDIR/subootstrap
     cd /usr/local/superlumic
