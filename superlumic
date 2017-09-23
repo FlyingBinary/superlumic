@@ -109,7 +109,7 @@ if [ ! -z "$admin" ]; then
         setStatusMessage "Granting admin privilege"
         $SCRIPTDIR/adminuser "grant" "$username" "$adminUsername"
     else
-        $HOMEHELPDIR/subootstrap
+        $HOMEHELPDIR/subootstrap "$username"
         setStatusMessage "Creating admin user "
         $SCRIPTDIR/createadministrator $adminUsername $adminUID $adminRealname $adminPicture
     fi
