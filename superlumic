@@ -78,6 +78,7 @@ function install_clt {
 
 repo=$1
 profile=$USER
+username=$profile
 if [ ! -z "$2" ]; then
     profile=$2
 fi
@@ -100,14 +101,15 @@ if [ ! -z "$admin" ]; then
     mkdir -p $HOMEHELPDIR
     getHelper subootstrap
     getHelper getscripts
-    $HOMEHELPDIR/subootstrap
     cd /usr/local/superlumic
     if $SCRIPTDIR/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
+        $HOMEHELPDIR/subootstrap "$adminUsername"
         setStatusMessage "Granting admin privilege"
         $SCRIPTDIR/adminuser "grant" "$username" "$adminUsername"
     else
+        $HOMEHELPDIR/subootstrap
         setStatusMessage "Creating admin user "
         $SCRIPTDIR/createadministrator $adminUsername $adminUID $adminRealname $adminPicture
     fi
