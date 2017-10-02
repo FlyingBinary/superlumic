@@ -105,7 +105,7 @@ if [ ! -z "$admin" ]; then
     if $SCRIPTDIR/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
-        $HOMEHELPDIR/subootstrap "$adminUsername"
+        bash -i $HOMEHELPDIR/subootstrap "$adminUsername"
         setStatusMessage "Granting admin privilege"
         $SCRIPTDIR/adminuser "grant" "$username" "$adminUsername"
     else
