@@ -1,4 +1,4 @@
-#!/bin/bash -v
+#!/bin/bash -vi
 
 # This is a helper script for Superlumic macOS configuration
 # The only purpose of this script is to allow us to run getscripts as administrator user
