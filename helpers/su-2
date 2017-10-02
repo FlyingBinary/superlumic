@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+echo "Downloading superlumic configuration script"
+curl https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/superlumic > ~/superlumic
+chmod 755 ~/superlumic
+
+if [ ! -z "$1" ]; then
+    echo "Setting config to '$1'"
+    export SL_CONFIG="$1"
+fi
+
+if [ ! -z "$2" ]; then
+    echo "Setting profile to '$2'"
+    export SL_PROFILE="$2"
+fi
+
+if [ ! -z "$3" ]; then
+    echo "Setting user to '$3'"
+    export SL_USER="$3"
+fi
+
+echo "Execute '~/superlumic' to configure"
