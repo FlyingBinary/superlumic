@@ -12,7 +12,7 @@ location="./"
 if [[ -f "/usr/local/bin/adminuser" ]]; then
     location="/usrlocal/bin/"
 fi
-if [[ -f "~/adminuser" ]]; then
+if [[ -f "~/.superlumic/adminuser" ]]; then
     location="~/.superlumic/"
 fi
 echo "(debug) location=$location"

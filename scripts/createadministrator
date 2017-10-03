@@ -40,7 +40,7 @@ location="./"
 if [[ -f "/usr/local/bin/createadministrator" ]]; then
     location="/usrlocal/bin/"
 fi
-if [[ -f "~/createadministrator" ]]; then
+if [[ -f "~/.superlumic/createadministrator" ]]; then
     location="~/.superlumic/"
 fi
 echo "(debug) location=$location"
