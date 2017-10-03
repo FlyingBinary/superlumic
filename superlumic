@@ -32,12 +32,20 @@ function exists {
 
 HomeScriptDir=~/.superlumic
 ScriptDir=/usr/local/superlumic/scripts
+LocalBinDir=/usr/local/bin
 RepoUrl=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/scripts
 
-function getScriot {
+function getScript {
     curl -s $RepoUrl/$1 > $HomeScriptDir/$1
     chmod 755 $HomeScriptDir/$1
     ln -fs $HomeScriptDir/$1 $HomeScriptDir/$1q
+}
+
+function copyScript {
+    sudo cp -fp $HomeScriptDir/$1 $ScriptDir
+    sudo cp -fp $HomeScriptDir/$1q $ScriptDir
+    sudo ln -fs $ScriptDir/$1 $LocalBinDir/$1
+    sudo ln -fs $ScriptDir/$1 $LocalBinDir/$1q
 }
 
 # credits https://github.com/boxcutter/osx/blob/master/script/xcode-cli-tools.sh
@@ -82,9 +90,11 @@ function makeFullyQualified {
         if [[ $1 =~ ^http(?:s)*:\/\/.+$ ]]; then
             echo "(debug) repo '$repo' matches full url with scheme"
             repo=$1
+            return 0
         else
             echo "(debug) repo '$repo' matches full url without scheme"
             repo="https://$1"
+            return 0
         fi
     fi
     # Github name and role name
@@ -92,19 +102,24 @@ function makeFullyQualified {
         if [[ $1 =~ ^.+\.git$ ]]; then
             echo "(debug) repo '$repo' matches github name and role name with extension"
             repo="https://github.com/$1"
+            return 0
         else
             echo "(debug) repo '$repo' matches github name and role name without extension"
             repo="https://github.com/$1.git"
+            return 0
         fi
     fi
     # Github name only
     if [[ $1 =~ ^[a-zA-Z0-9_\-]+$ ]]; then
         echo "(debug) repo '$repo' matches github name only"
         repo="https://github.com/$1/superlumic-config.git"
+        return 0
     fi
-    # Give up - assume the provided string represents a usable url
+    # Give up - in all other cases assume the provided string represents a usable url
+    # and leave the value as is
     echo "(debug) repo '$repo' doesn't match anything - given up"
     repo=$1
+    return 1
 }
 
 repo=$1
@@ -136,9 +151,9 @@ fi
 if [ ! -z "$admin" ]; then
     source "/Volumes/Superlumic/admin.cfg"
     mkdir -p $HomeScriptDir
-    getScriot adminuser
-    getScriot checkuser
-    getScriot createadministrator
+    getScript adminuser
+    getScript checkuser
+    getScript createadministrator
     if $HomeScriptDir/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
@@ -152,35 +167,32 @@ if [ ! -z "$admin" ]; then
     fi
 fi
 
-echo "Stopping now..."
-exit 99
+#        setStatusMessage "Checking if we need to ask for a sudo password"
+#
+#        sudo -v
+#        export ANSIBLE_ASK_SUDO_PASS=True
+#
+#        setStatusMessage "Keep-alive: update existing sudo time stamp until we are finished"
+#
+#        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-setStatusMessage "Checking if we need to ask for a sudo password"
+#        export HOMEBREW_CASK_OPTS="--appdir=/Applications"
+#
+#        if [[ ! -f "/Library/Developer/CommandLineTools/usr/bin/clang" ]]; then
+#            setStatusMessage "Install the CLT"
+#            install_clt
+#        fi
 
-sudo -v
-export ANSIBLE_ASK_SUDO_PASS=True
-
-setStatusMessage "Keep-alive: update existing sudo time stamp until we are finished"
-
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-
-export HOMEBREW_CASK_OPTS="--appdir=/Applications"
-
-if [[ ! -f "/Library/Developer/CommandLineTools/usr/bin/clang" ]]; then
-    setStatusMessage "Install the CLT"
-    install_clt
-fi
-
-# Install Ansible
-if ! exists pip; then
-    setStatusMessage "Install PIP"
-    sudo easy_install --quiet pip
-fi
-if ! exists ansible; then
-    setStatusMessage "Install Ansible"
-    pip install --upgrade setuptools --user python
-    sudo pip install -q ansible
-fi
+#        # Install Ansible
+#        if ! exists pip; then
+#            setStatusMessage "Install PIP"
+#            sudo easy_install --quiet pip
+#        fi
+#        if ! exists ansible; then
+#            setStatusMessage "Install Ansible"
+#            pip install --upgrade setuptools --user python
+#            sudo pip install -q ansible
+#        fi
 
 setStatusMessage "Create necessary folders"
 
@@ -189,19 +201,28 @@ sudo mkdir -p /usr/local/superlumic/roles
 sudo chmod -R g+rwx /usr/local
 sudo chgrp -R admin /usr/local
 
-if [ -d "/usr/local/superlumic/config" ]; then
-    setStatusMessage "Update your config from git"
-    cd /usr/local/superlumic/config
-    git pull -q
-else
-    if [ ! -z "$repo" ]; then
-        setStatusMessage "Getting your config from your fork"
-        git clone -q $1 /usr/local/superlumic/config
-    else
-        setStatusMessage "Getting the default config"
-        git clone -q https://github.com/FlyingBinary/superlumic-config.git /usr/local/superlumic/config
-    fi
+if [ ! -z "$admin" ]; then
+    sudo mkdir -p /usr/local/superlumic/scripts
+    setStatusMessage "Copying scripts"
+
+    copyScript checkuser
+    copyScript adminuser
+    copyScript createadministrator
 fi
+
+#        if [ -d "/usr/local/superlumic/config" ]; then
+#            setStatusMessage "Update your config from git"
+#            cd /usr/local/superlumic/config
+#            git pull -q
+#        else
+#            if [ ! -z "$repo" ]; then
+#                setStatusMessage "Getting your config from your fork"
+#                git clone -q $1 /usr/local/superlumic/config
+#            else
+#                setStatusMessage "Getting the default config"
+#                git clone -q https://github.com/FlyingBinary/superlumic-config.git /usr/local/superlumic/config
+#            fi
+#        fi
 
 cd /usr/local/superlumic
 
@@ -209,23 +230,23 @@ setStatusMessage "Create ansible.cfg"
 
 { echo '[defaults]'; echo 'roles_path=/usr/local/superlumic/roles:/usr/local/superlumic/config/roles'; } > ansible.cfg
 
-setStatusMessage "Get all the required roles"
+#        setStatusMessage "Get all the required roles"
+#
+#        ansible-galaxy install -f -r config/requirements.yml -p roles
 
-ansible-galaxy install -f -r config/requirements.yml -p roles
-
-if [ -f "config/$profile.yml" ]; then
-    setStatusMessage "Running the ansible playbook for $profile"
-    ansible-playbook -i "localhost," config/$profile.yml
-else
-    if [ "travis" = "$profile" ]; then
-        setStatusMessage "Running the ansible playbook for $profile but use roderik.yml as fallback"
-        ansible-playbook -i "localhost," config/roderik.yml
-    else
-        triggerError "No playbook for $profile found"
-    fi
-fi
+#        if [ -f "config/$profile.yml" ]; then
+#            setStatusMessage "Running the ansible playbook for $profile"
+#            ansible-playbook -i "localhost," config/$profile.yml
+#        else
+#            if [ "travis" = "$profile" ]; then
+#                setStatusMessage "Running the ansible playbook for $profile but use roderik.yml as fallback"
+#                ansible-playbook -i "localhost," config/roderik.yml
+#            else
+#                triggerError "No playbook for $profile found"
+#            fi
+#        fi
 
 if [ ! -z "$admin" ]; then
     setStatusMessage "Revoking admin privilege"
-    $ScriptDir/adminuser "revoke" "$username" "$adminUsername"
+    $HomeScriptDir/adminuser "revoke" "$username" "$adminUsername"
 fi
