@@ -1,4 +1,4 @@
-#!/bin/bash -v
+#!/bin/bash
 echo "(debug) starting ${0##*/}"
 
 Password=ChangeM3.
@@ -65,11 +65,14 @@ if [ -z $2 ] || [[ ! $2 =~ ^4[0-9][1-9]$ ]]; then
     printMessage "Please provide a unique user id in the range 401-499" 2
     exit 66
 fi
+echo "(debug) user id='$2'"
 
 if [ -z "$3" ]; then
     printMessage "Please provide a real user name" 2
     exit 67
 fi
+echo "(debug) real user name='$3'"
+
 
 if [ ! -z "$4" ]; then
     if [ ! -f "$4" ]; then
@@ -77,9 +80,13 @@ if [ ! -z "$4" ]; then
         exit 68
     fi
 fi
+echo "(debug) picture file name='$4'"
 
+
+echo "(debug) about to check if '$1' exists"
 if "$location$checkuserscript" exists $1; then
     printMessage "User '$1' already exists" 2
+    echo "(debug) about to check if '$1' is a member of the admin group"
     if "$location$checkuserscript" member $1 admin; then
         printMessage "YES: User '$1' is a member of the admin group" 2
     else
@@ -88,6 +95,7 @@ if "$location$checkuserscript" exists $1; then
     exit 69
 fi
 
+echo "(debug) starting to create the user"
 # Create the user
 oneCommand "sudo dscl . -create /Users/$1 UniqueID $2" "Create unique id" 70
 oneCommand "sudo dscl . -create /Users/$1 RealName \"$3\"" "Set real name" 71

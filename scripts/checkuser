@@ -1,7 +1,8 @@
-#!/bin/bash -v
-echo "(debug) starting `${0##*/}`"
+#!/bin/bash
+echo "(debug) starting ${0##*/}"
 
 if [ "${0##*/}" == "checkuserq" ]; then quiet=true; else quiet=false; fi
+echo "(debug) quiet=$quiet"
 
 function printMessage {
     if ! "$quiet"; then
@@ -31,14 +32,17 @@ if [ -z $2 ]; then
     printMessage "Please provide a user name" 2
     exit 65
 fi
+echo "(debug) user name='$2'"
 
 guid=
 if dscl . -read /Users/$2 UniqueID >/dev/null 2>&1
 then
     guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
 fi
+echo "(debug) guid='$guid'"
 
 if [ "$1" == "exists" ]; then
+    echo "(debug) checking existence"
     if [ ! -z "$guid" ]; then
         printMessage "YES: Found user '$2'"
         exit 0
@@ -49,6 +53,7 @@ if [ "$1" == "exists" ]; then
 fi
 
 if [ "$1" == "member" ]; then
+    echo "(debug) checking membership"
     if [ -z "$guid" ]; then
         printMessage "Could not find user '$2' - exiting" 2
         exit 66
@@ -57,13 +62,16 @@ if [ "$1" == "member" ]; then
         printMessage "Please provide a group name" 2
         exit 67
     fi
+    echo "(debug) group name='$3'"
     dscl . -read /Groups/$3 GroupMembers >/dev/null 2>&1
     status=$?
+    echo "(debug) read status='$status'"
     if [ $status == 56 ]; then
         printMessage "Could not find group '$3' - exiting" 2
         exit 68
     fi
     member=$(dscl . -read /Groups/$3 GroupMembers | grep "$guid")
+    echo "(debug) member result='$member'"
     if [ ! -z "$member" ]; then
         printMessage "YES: Found user '$2' in group '$3'"
         exit 0

@@ -37,7 +37,7 @@ RepoUrl=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/scrip
 function getScriot {
     curl -s $RepoUrl/$1 > $HomeScriptDir/$1
     chmod 755 $HomeScriptDir/$1
-    ln -s $HomeScriptDir/$1 $HomeScriptDir/$1q
+    ln -fs $HomeScriptDir/$1 $HomeScriptDir/$1q
 }
 
 # credits https://github.com/boxcutter/osx/blob/master/script/xcode-cli-tools.sh
@@ -80,24 +80,30 @@ function makeFullyQualified {
     # Full url
     if [[ $1 =~ ^.+\..+\/.+\..+$ ]]; then
         if [[ $1 =~ ^http(?:s)*:\/\/.+$ ]]; then
+            echo "(debug) repo '$repo' matches full url with scheme"
             repo=$1
         else
+            echo "(debug) repo '$repo' matches full url without scheme"
             repo="https://$1"
         fi
     fi
     # Github name and role name
     if [[ $1 =~ ^.+\/.+$ ]]; then
         if [[ $1 =~ ^.+\.git$ ]]; then
+            echo "(debug) repo '$repo' matches github name and role name with extension"
             repo="https://github.com/$1"
         else
+            echo "(debug) repo '$repo' matches github name and role name without extension"
             repo="https://github.com/$1.git"
         fi
     fi
     # Github name only
     if [[ $1 =~ ^[a-zA-Z0-9_\-]+$ ]]; then
+        echo "(debug) repo '$repo' matches github name only"
         repo="https://github.com/$1/superlumic-config.git"
     fi
     # Give up - assume the provided string represents a usable url
+    echo "(debug) repo '$repo' doesn't match anything - given up"
     repo=$1
 }
 
@@ -105,6 +111,7 @@ repo=$1
 profile=$USER
 username=$profile
 if [ ! -z "$1" ]; then
+    echo "(debug) "
     makeFullyQualified $repo
 fi
 setStatusMessage "Using repo '$repo'"
@@ -132,17 +139,16 @@ if [ ! -z "$admin" ]; then
     getScriot adminuser
     getScriot checkuser
     getScriot createadministrator
-    cd $HomeScriptDir
-    if ./checkuser "exists" "$adminUsername"; then
+    if $HomeScriptDir/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
 #        bash -i $HOMESCRIPTDIR/subootstrap "$adminUsername"
         setStatusMessage "Granting admin privilege"
-        ./adminuser "grant" "$username" "$adminUsername"
+        $HomeScriptDir/adminuser "grant" "$username" "$adminUsername"
     else
 #        $HOMESCRIPTDIR/subootstrap "$username"
         setStatusMessage "Creating admin user "
-        ./createadministrator "$adminUsername" "$adminUID" "$adminRealname" "$adminPicture"
+        $HomeScriptDir/createadministrator "$adminUsername" "$adminUID" "$adminRealname" "$adminPicture"
     fi
 fi
 
