@@ -35,8 +35,8 @@ SCRIPTDIR=/usr/local/superlumic/scripts
 REPOURL=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/scripts
 
 function getScriot {
-    sudo curl -s $REPOURL/$1 > $HOMESCRIPTDIR/$1
-    sudo chmod 755 $HOMESCRIPTDIR/$1
+    curl -s $REPOURL/$1 > $HOMESCRIPTDIR/$1
+    chmod 755 $HOMESCRIPTDIR/$1
 }
 
 # credits https://github.com/boxcutter/osx/blob/master/script/xcode-cli-tools.sh
@@ -79,32 +79,32 @@ function makeFullyQualified {
     # Full url
     if [[ $1 =~ ^.+\..+\/.+\..+$ ]]; then
         if [[ $1 =~ ^http(?:s)*:\/\/.+$ ]]; then
-            return $1
+            repo=$1
         else
-            return "https://$1"
+            repo="https://$1"
         fi
     fi
     # Github name and role name
     if [[ $1 =~ ^.+\/.+$ ]]; then
         if [[ $1 =~ ^.+\.git$ ]]; then
-            return "https://github.com/$1"
+            repo="https://github.com/$1"
         else
-            return "https://github.com/$1.git"
+            repo="https://github.com/$1.git"
         fi
     fi
     # Github name only
     if [[ $1 =~ ^[a-zA-Z0-9_\-]+$ ]]; then
-        return "https://github.com/$1/superlumic-config.git"
+        repo="https://github.com/$1/superlumic-config.git"
     fi
     # Give up - assume the provided string represents a usable url
-    return $1
+    repo=$1
 }
 
 repo=$1
 profile=$USER
 username=$profile
 if [ ! -z "$1" ]; then
-    repo=makeFullyQualified $repo
+    makeFullyQualified $repo
 fi
 setStatusMessage "Using repo '$repo'"
 
