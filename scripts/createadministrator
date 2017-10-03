@@ -1,8 +1,24 @@
 #!/bin/bash -v
 
-PASSWORD=ChangeM3.
+Password=ChangeM3.
 
 if [ "${0##*/}" == "createadministratorq" ]; then quiet=true; else quiet=false; fi
+echo "(debug) quiet=$quiet"
+
+location="./"
+if [[ -f "/usr/local/bin/createadministrator" ]]; then
+    location="/usrlocal/bin/"
+fi
+if [[ -f "~/createadministrator" ]]; then
+    location="~/"
+fi
+echo "(debug) location=$location"
+
+createuserscript="createuser"
+if [[ -f "$location/createyuserq" ]]; then
+    createuserscript="createuserq"
+fi
+echo "(debug) createuserscript=$createuserscript"
 
 function printMessage {
     if ! "$quiet"; then
@@ -56,9 +72,9 @@ if [ ! -z "$4" ]; then
     fi
 fi
 
-if checkuserq exists $1; then
+if "$location$createuserscript" exists $1; then
     printMessage "User '$1' already exists" 2
-    if checkuserq member $1 admin; then
+    if "$location$createuserscript" member $1 admin; then
         printMessage "YES: User '$1' is a member of the admin group" 2
     else
         printMessage "NO: User '$1' is not a member of the admin group" 2
@@ -72,8 +88,8 @@ oneCommand "sudo dscl . -create /Users/$1 RealName \"$3\"" "Set real name" 69
 if [ ! -z "$4" ]; then
     oneCommand "sudo dscl . -create /Users/$1 Picture \"$4\"" "Set user picture" 70
 fi
-oneCommand "sudo dscl . -passwd /Users/$1 $PASSWORD" "Set user password" 71
-printMessage "User '$1' created with default password $PASSWORD"
+oneCommand "sudo dscl . -passwd /Users/$1 $Password" "Set user password" 71
+printMessage "User '$1' created with default password $Password"
 printMessage "Change the password immediately"
 
 # Set group membership

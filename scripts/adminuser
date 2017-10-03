@@ -7,6 +7,21 @@ if [ "$1" != "grant" ] && [ "$1" != "revoke" ]; then
     exit 64
 fi
 
+location="./"
+if [[ -f "/usr/local/bin/adminuser" ]]; then
+    location="/usrlocal/bin/"
+fi
+if [[ -f "~/adminuser" ]]; then
+    location="~/"
+fi
+echo "(debug) location=$location"
+
+createuserscript="createuser"
+if [[ -f "$location/createyuserq" ]]; then
+    createuserscript="createuserq"
+fi
+echo "(debug) createuserscript=$createuserscript"
+
 # Don't need su privilege to read the GeneratedUID
 # echo "Enter su password"
 # this_guid=$(su snowman -c "dscl . -read /Users/$this_user GeneratedUID | cut -f 2 -d ' '")

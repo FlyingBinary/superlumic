@@ -30,13 +30,14 @@ function exists {
   fi
 }
 
-HOMESCRIPTDIR=~/.superlumic
-SCRIPTDIR=/usr/local/superlumic/scripts
-REPOURL=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/scripts
+HomeScriptDir=~/.superlumic
+ScriptDir=/usr/local/superlumic/scripts
+RepoUrl=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/scripts
 
 function getScriot {
-    curl -s $REPOURL/$1 > $HOMESCRIPTDIR/$1
-    chmod 755 $HOMESCRIPTDIR/$1
+    curl -s $RepoUrl/$1 > $HomeScriptDir/$1
+    chmod 755 $HomeScriptDir/$1
+    ln -s $HomeScriptDir/$1 $HomeScriptDir/$1q
 }
 
 # credits https://github.com/boxcutter/osx/blob/master/script/xcode-cli-tools.sh
@@ -127,11 +128,11 @@ fi
 
 if [ ! -z "$admin" ]; then
     source "/Volumes/Superlumic/admin.cfg"
-    mkdir -p $HOMESCRIPTDIR
+    mkdir -p $HomeScriptDir
     getScriot adminuser
     getScriot checkuser
     getScriot createadministrator
-    cd $HOMESCRIPTDIR
+    cd $HomeScriptDir
     if ./checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
@@ -146,7 +147,7 @@ if [ ! -z "$admin" ]; then
 fi
 
 echo "Stopping now..."
-exit 99
+#    exit 99
 
 setStatusMessage "Checking if we need to ask for a sudo password"
 
@@ -220,5 +221,5 @@ fi
 
 if [ ! -z "$admin" ]; then
     setStatusMessage "Revoking admin privilege"
-    $SCRIPTDIR/adminuser "revoke" "$username" "$adminUsername"
+    $ScriptDir/adminuser "revoke" "$username" "$adminUsername"
 fi
