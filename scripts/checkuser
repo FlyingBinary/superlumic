@@ -28,7 +28,7 @@ fi
 
 if [ -z $2 ]; then
     printMessage "Please provide a user name" 2
-    exit 62
+    exit 65
 fi
 
 guid=
@@ -50,17 +50,17 @@ fi
 if [ "$1" == "member" ]; then
     if [ -z "$guid" ]; then
         printMessage "Could not find user '$2' - exiting" 2
-        exit 2
+        exit 66
     fi
     if [ -z $3 ]; then
         printMessage "Please provide a group name" 2
-        exit 63
+        exit 67
     fi
     dscl . -read /Groups/$3 GroupMembers >/dev/null 2>&1
     status=$?
     if [ $status == 56 ]; then
         printMessage "Could not find group '$3' - exiting" 2
-        exit 3
+        exit 68
     fi
     member=$(dscl . -read /Groups/$3 GroupMembers | grep "$guid")
     if [ ! -z "$member" ]; then

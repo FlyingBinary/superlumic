@@ -12,7 +12,7 @@ if [[ -f "/usr/local/bin/adminuser" ]]; then
     location="/usrlocal/bin/"
 fi
 if [[ -f "~/adminuser" ]]; then
-    location="~/"
+    location="~/.superlumic/"
 fi
 echo "(debug) location=$location"
 
@@ -21,6 +21,11 @@ if [[ -f "$location/createyuserq" ]]; then
     createuserscript="createuserq"
 fi
 echo "(debug) createuserscript=$createuserscript"
+
+if [[ ! -f "$location$createuserscript" ]]; then
+   printMessage "Script '$location$createuserscript' not found"
+   exit 65
+fi
 
 # Don't need su privilege to read the GeneratedUID
 # echo "Enter su password"
@@ -37,12 +42,12 @@ echo "(debug) createuserscript=$createuserscript"
 
 if [ -z $2 ]; then
     echo "Please provide a user name" >&2
-    exit 62
+    exit 66
 fi
 
 if [ -z $3 ]; then
     echo "Please provide an admin user name" >&2
-    exit 63
+    exit 67
 fi
 
 guid=
@@ -50,13 +55,13 @@ if checkuserq exists $2; then
     guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
 else
     echo "Could not find user '$2' - exiting" >&2
-    exit 2
+    exit 68
 fi
 
 if [ "$1" == "grant" ]; then
     if checkuserq member $2 admin; then
         echo "User '$2' is already a member of admin group"
-        exit 3
+        exit 69
     fi
     echo "Adding '$2' to admin group with '$3'"
     echo "You may need to enter your su password twice"
@@ -71,7 +76,7 @@ if [ "$1" == "grant" ]; then
 else
     if ! checkuserq member $2 admin; then
         echo "User '$2' is not a member of admin group"
-        exit 3
+        exit 70
     fi
     echo "Removing '$2' from admin group with '$3'"
     echo "You may need to enter your su password twice"
