@@ -30,14 +30,13 @@ function exists {
   fi
 }
 
-HOMEHELPDIR=~/.superlumic
+HOMESCRIPTDIR=~/.superlumic
 SCRIPTDIR=/usr/local/superlumic/scripts
-REPOURL=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/helpers
+REPOURL=https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/scripts
 
-
-function getHelper {
-    sudo curl -s $REPOURL/$1 > $HOMEHELPDIR/$1
-    sudo chmod 755 $HOMEHELPDIR/$1
+function getScriot {
+    sudo curl -s $REPOURL/$1 > $HOMESCRIPTDIR/$1
+    sudo chmod 755 $HOMESCRIPTDIR/$1
 }
 
 # credits https://github.com/boxcutter/osx/blob/master/script/xcode-cli-tools.sh
@@ -76,9 +75,39 @@ function install_clt {
     fi
 }
 
+function makeFullyQualified {
+    # Full url
+    if [[ $1 =~ ^.+\..+\/.+\..+$ ]]; then
+        if [[ $1 =~ ^http(?:s)*:\/\/.+$ ]]; then
+            return $1
+        else
+            return "https://$1"
+        fi
+    fi
+    # Github name and role name
+    if [[ $1 =~ ^.+\/.+$ ]]; then
+        if [[ $1 =~ ^.+\.git$ ]]; then
+            return "https://github.com/$1"
+        else
+            return "https://github.com/$1.git"
+        fi
+    fi
+    # Github name only
+    if [[ $1 =~ ^[a-zA-Z0-9_\-]+$ ]]; then
+        return "https://github.com/$1/superlumic-config.git"
+    fi
+    # Give up - assume the provided string represents a usable url
+    return $1
+}
+
 repo=$1
 profile=$USER
 username=$profile
+if [ ! -z "$1" ]; then
+    repo=makeFullyQualified $repo
+fi
+setStatusMessage "Using repo '$repo'"
+
 if [ ! -z "$2" ]; then
     profile=$2
 fi
@@ -98,20 +127,21 @@ fi
 
 if [ ! -z "$admin" ]; then
     source "/Volumes/Superlumic/admin.cfg"
-    mkdir -p $HOMEHELPDIR
-    getHelper subootstrap
-    getHelper getscripts
-    cd /usr/local/superlumic
-    if $SCRIPTDIR/checkuser "exists" "$adminUsername"; then
+    mkdir -p $HOMESCRIPTDIR
+    getScriot adminuser
+    getScriot checkuser
+    getScriot createadministrator
+    cd $HOMESCRIPTDIR
+    if ./checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
-        bash -i $HOMEHELPDIR/subootstrap "$adminUsername"
+#        bash -i $HOMESCRIPTDIR/subootstrap "$adminUsername"
         setStatusMessage "Granting admin privilege"
-        $SCRIPTDIR/adminuser "grant" "$username" "$adminUsername"
+        ./adminuser "grant" "$username" "$adminUsername"
     else
-        $HOMEHELPDIR/subootstrap "$username"
+#        $HOMESCRIPTDIR/subootstrap "$username"
         setStatusMessage "Creating admin user "
-        $SCRIPTDIR/createadministrator $adminUsername $adminUID $adminRealname $adminPicture
+        ./createadministrator "$adminUsername" "$adminUID" "$adminRealname" "$adminPicture"
     fi
 fi
 

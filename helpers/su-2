@@ -4,19 +4,52 @@ echo "Downloading superlumic configuration script"
 curl https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/superlumic > ~/superlumic
 chmod 755 ~/superlumic
 
-if [ ! -z "$1" ]; then
-    echo "Setting config to '$1'"
-    source `export SL_CONFIG="$1"`
-fi
+echo "Usage: '~/superlumic config profile [user]' to configure"
+echo "       config  = location of superlumic-config role"
+echo "                 'name' implies 'https://github.com/name/superlumic-config.git'"
+echo "                 'name/role' implies 'https://github.com/name/role.git'"
+echo "                 'url' specifies config location exactly"
+echo "       profile = profile or user name to configure"
+echo "       user    = [optional] if specified, allows different user and profile names"
+echo
 
-if [ ! -z "$2" ]; then
-    echo "Setting profile to '$2'"
-    source `export SL_PROFILE="$2"`
-fi
-
-if [ ! -z "$3" ]; then
-    echo "Setting user to '$3'"
-    source `export SL_USER="$3"`
-fi
-
-echo "Execute '~/superlumic' to configure"
+# There seems to be no 'simple' way to do this.
+# The original superlumic script can be piped directly into bash. This gives a nice 'zero-touch'
+# start point for configuration, and the current version maintains this as far as possible.
+# Adding the capability to 'downgrade' the installer user to a standard user creates an incompatibility
+# with the '-s' (read commands from stdin) switch, because the su command bails without reading the
+# password from the console.
+#
+# There may be an advanced way to resolve this behaviour, but in the meantime, the options are:
+#   1. It fails (not very useful)
+#   2. Complex command (curl script; make executable; execute the script with long parameters
+#   3. Use this bootstrap script
+#
+# Note that piping the superlumic script will work exactly as it did before - you just can't use the
+# option to downgrade the installer user.
+#
+# There are some further complications with execution sequence, depending on whether the installer user
+# is currently in the admin group (and can sudo) or isn't (and can't)
+#
+# There are two cases we need to consider:
+#  a) Run 1: no admin user, installer user is still admin
+#  b) Run 2+: admin user exists, and installer user is not admin
+#
+# Sequence:
+# - declare variables and functions
+# - check admin.cfg to decide admin option status, and set variables
+# - get all helper scripts into ~/.superlumic directory
+# - check existence of admin user
+# - Run1: create admin user
+# - Run2+: grant installer user admin privilege
+# - install command line tools
+# - install pip
+# - install ansible
+# - create /usr/local directories
+# - copy helper scripts to /usr/local
+# - symlink helper scripts to /usr/local/bin
+# - get superlumic config
+# - create ansible.cfg
+# - get all the required roles
+# - run the ansible playbook
+# - revoke installer user admin privilege
