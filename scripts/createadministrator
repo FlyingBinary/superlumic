@@ -36,18 +36,18 @@ function oneCommand {
     fi
 }
 
-location="./"
-if [[ -f "/usr/local/bin/createadministrator" ]]; then
-    location="/usrlocal/bin/"
+location=.
+if [[ -f /usr/local/bin/createadministrator ]]; then
+    location=/usr/local/bin
 fi
-if [[ -f "~/.superlumic/createadministrator" ]]; then
-    location="~/.superlumic/"
+if [[ -f ~/.superlumic/createadministrator ]]; then
+    location=~/.superlumic
 fi
 echo "(debug) location=$location"
 
-checkuserscript="checkuser"
-if [[ -f "$location/checkuserq" ]]; then
-    checkuserscript="checkuserq"
+checkuserscript=checkuser
+if [[ -f $location/checkuserq ]]; then
+    checkuserscript=checkuserq
 fi
 echo "(debug) checkuserscript=$checkuserscript"
 
@@ -56,8 +56,8 @@ if [ -z $1 ]; then
     exit 64
 fi
 
-if [[ ! -f "$location$checkuserscript" ]]; then
-   printMessage "Script '$location$checkuserscript' not found"
+if [[ ! -f $location/$checkuserscript ]]; then
+   printMessage "Script '$location/$checkuserscript' not found"
    exit 65
 fi
 
@@ -84,10 +84,10 @@ echo "(debug) picture file name='$4'"
 
 
 echo "(debug) about to check if '$1' exists"
-if "$location$checkuserscript" exists $1; then
+if "$location/$checkuserscript" exists $1; then
     printMessage "User '$1' already exists" 2
     echo "(debug) about to check if '$1' is a member of the admin group"
-    if "$location$checkuserscript" member $1 admin; then
+    if "$location/$checkuserscript" member $1 admin; then
         printMessage "YES: User '$1' is a member of the admin group" 2
     else
         printMessage "NO: User '$1' is not a member of the admin group" 2
