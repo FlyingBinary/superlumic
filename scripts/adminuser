@@ -1,4 +1,5 @@
 #!/bin/bash -v
+echo "(debug) starting `${0##*/}`"
 
 if [ "$1" != "grant" ] && [ "$1" != "revoke" ]; then
     echo "Usage: ${0##*/} grant|revoke username adminusername" >&2

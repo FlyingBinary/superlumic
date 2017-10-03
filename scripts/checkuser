@@ -1,4 +1,5 @@
 #!/bin/bash -v
+echo "(debug) starting `${0##*/}`"
 
 if [ "${0##*/}" == "checkuserq" ]; then quiet=true; else quiet=false; fi
 

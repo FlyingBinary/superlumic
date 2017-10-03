@@ -1,4 +1,5 @@
 #!/bin/bash -v
+echo "(debug) starting `${0##*/}`"
 
 Password=ChangeM3.
 
