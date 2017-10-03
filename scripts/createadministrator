@@ -1,5 +1,5 @@
 #!/bin/bash -v
-echo "(debug) starting `${0##*/}`"
+echo "(debug) starting ${0##*/}"
 
 Password=ChangeM3.
 
@@ -45,19 +45,19 @@ if [[ -f "~/.superlumic/createadministrator" ]]; then
 fi
 echo "(debug) location=$location"
 
-createuserscript="createuser"
-if [[ -f "$location/createuserq" ]]; then
-    createuserscript="createuserq"
+checkuserscript="checkuser"
+if [[ -f "$location/checkuserq" ]]; then
+    checkuserscript="checkuserq"
 fi
-echo "(debug) createuserscript=$createuserscript"
+echo "(debug) checkuserscript=$checkuserscript"
 
 if [ -z $1 ]; then
     printMessage "Usage: ${0##*/} username uniqueid realname [picture]" 2
     exit 64
 fi
 
-if [[ ! -f "$location$createuserscript" ]]; then
-   printMessage "Script '$location$createuserscript' not found"
+if [[ ! -f "$location$checkuserscript" ]]; then
+   printMessage "Script '$location$checkuserscript' not found"
    exit 65
 fi
 
@@ -78,9 +78,9 @@ if [ ! -z "$4" ]; then
     fi
 fi
 
-if "$location$createuserscript" exists $1; then
+if "$location$checkuserscript" exists $1; then
     printMessage "User '$1' already exists" 2
-    if "$location$createuserscript" member $1 admin; then
+    if "$location$checkuserscript" member $1 admin; then
         printMessage "YES: User '$1' is a member of the admin group" 2
     else
         printMessage "NO: User '$1' is not a member of the admin group" 2

@@ -147,7 +147,7 @@ if [ ! -z "$admin" ]; then
 fi
 
 echo "Stopping now..."
-#    exit 99
+exit 99
 
 setStatusMessage "Checking if we need to ask for a sudo password"
 

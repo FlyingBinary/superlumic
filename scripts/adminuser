@@ -1,5 +1,5 @@
 #!/bin/bash -v
-echo "(debug) starting `${0##*/}`"
+echo "(debug) starting ${0##*/}"
 
 if [ "$1" != "grant" ] && [ "$1" != "revoke" ]; then
     echo "Usage: ${0##*/} grant|revoke username adminusername" >&2
@@ -17,14 +17,14 @@ if [[ -f "~/.superlumic/adminuser" ]]; then
 fi
 echo "(debug) location=$location"
 
-createuserscript="createuser"
+checkuserscript="checkuser"
 if [[ -f "$location/createyuserq" ]]; then
-    createuserscript="createuserq"
+    checkuserscript="checkuserq"
 fi
-echo "(debug) createuserscript=$createuserscript"
+echo "(debug) checkuserscript=$checkuserscript"
 
-if [[ ! -f "$location$createuserscript" ]]; then
-   printMessage "Script '$location$createuserscript' not found"
+if [[ ! -f "$location$checkuserscript" ]]; then
+   printMessage "Script '$location$checkuserscript' not found"
    exit 65
 fi
 
@@ -52,7 +52,7 @@ if [ -z $3 ]; then
 fi
 
 guid=
-if checkuserq exists $2; then
+if "$location$checkuserscript" exists $2; then
     guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
 else
     echo "Could not find user '$2' - exiting" >&2
@@ -60,14 +60,14 @@ else
 fi
 
 if [ "$1" == "grant" ]; then
-    if checkuserq member $2 admin; then
+    if "$location$checkuserscript" member $2 admin; then
         echo "User '$2' is already a member of admin group"
         exit 69
     fi
     echo "Adding '$2' to admin group with '$3'"
     echo "You may need to enter your su password twice"
     su $3 -c "sudo dscl . -append /Groups/admin GroupMembers $guid"
-    if checkuserq member $2 admin; then
+    if "$location$checkuserscript" member $2 admin; then
         echo "YES: User '$2' is now a member of admin group"
         exit 0
     else
@@ -75,14 +75,14 @@ if [ "$1" == "grant" ]; then
         exit 1
     fi
 else
-    if ! checkuserq member $2 admin; then
+    if ! "$location$checkuserscript" member $2 admin; then
         echo "User '$2' is not a member of admin group"
         exit 70
     fi
     echo "Removing '$2' from admin group with '$3'"
     echo "You may need to enter your su password twice"
     su $3 -c "sudo dscl . -delete /Groups/admin GroupMembers $guid"
-    if ! checkuserq member $2 admin; then
+    if ! "$location$checkuserscript" member $2 admin; then
         echo "YES: User '$2' in no longer a member of admin group"
         exit 0
     else
