@@ -43,7 +43,7 @@ function getScript {
 
 function copyScript {
     sudo cp -fp $HomeScriptDir/$1 $ScriptDir
-    sudo cp -fp $HomeScriptDir/$1q $ScriptDir
+    sudo ln -fs $ScriptDir/$1 $ScriptDir/$1q
     sudo ln -fs $ScriptDir/$1 $LocalBinDir/$1
     sudo ln -fs $ScriptDir/$1 $LocalBinDir/$1q
 }
@@ -154,6 +154,7 @@ if [ ! -z "$admin" ]; then
     getScript adminuser
     getScript checkuser
     getScript createadministrator
+    getScript listmembers
     if $HomeScriptDir/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
@@ -208,6 +209,7 @@ if [ ! -z "$admin" ]; then
     copyScript checkuser
     copyScript adminuser
     copyScript createadministrator
+    copyScript listmembers
 fi
 
 #        if [ -d "/usr/local/superlumic/config" ]; then

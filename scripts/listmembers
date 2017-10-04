@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+if [ -z $1 ]; then
+    echo "Usage: ${0##*/} groupname"
+    exit 64
+fi
+group=$1
+
+
+if ! dscl . -read /Groups/$group GroupMembership >/dev/null 2>&1
+then
+    echo "Cannot find '$group' group"
+    exit 65
+fi
+
+declare -a groupMembership
+memberList=$(dscl . -read /Groups/$group GroupMembership)
+IFS=' ' read -r -a groupMembership <<< "$memberList"
+for member in "${groupMembership[@]}"
+do
+    echo $member
+done
+
+echo
+declare -a groupMembers
+memberList=$(dscl . -read /Groups/$group GroupMembers)
+IFS=' ' read -r -a groupMembers <<< "$memberList"
+for member in "${groupMembers[@]}"
+do
+    echo $member
+done
+
+declare -a guids
+i=1
+while read line
+do
+    guids[$i]="$line"
+    (( i++ ))
+done < <(dscl . -list /users GeneratedUID | sed -E "s/[ ]+/ /" | cut -f 2 -d ' ')
+
+#    echo "(debug) guids length='${#guids[@]}'"
+#    echo "(debug) guids[1]='${guids[1]}'"
+
+declare -a names
+i=1
+while read line
+do
+    names[$i]="$line"
+    (( i++ ))
+done < <(dscl . -list /users GeneratedUID | sed -E "s/[ ]+/ /" | cut -f 1 -d ' ')
+
+
+
+echo
+echo "Users:"
+for index in "${!guids[@]}"
+do
+    # echo "(debug) item='${guids[index]}'"
+    # echo "(debug) test='$test'"
+    if [[ $memberList =~ .*${guids[index]}.* ]]; then
+        echo "${guids[index]}    ${names[index]}"
+    fi
+done
