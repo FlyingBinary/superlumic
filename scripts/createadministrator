@@ -109,15 +109,15 @@ printMessage "Change the password immediately"
 # Set group membership
 guid=$(sudo dscl . -read /Users/$1 GeneratedUID | cut -f 2 -d ' ')
 oneCommand "sudo dscl . -create /Users/$1 PrimaryGroupID 20" "Set primary group" 74
-# oneCommand "sudo dscl . append /Groups/admin GroupMembership $1" "Add to admin group" 73
-oneCommand "sudo dscl . -append /Groups/admin GroupMembers $guid" "Add to admin group" 75
+oneCommand "sudo dscl . -append /Groups/admin GroupMembership $1" "Add to admin group membership" 75
+oneCommand "sudo dscl . -append /Groups/admin GroupMembers $guid" "Add to admin group members" 76
 printMessage "User '$1' added to staff and admin groups"
 
 # Set up home directory and user shell
-oneCommand "sudo mkdir /var/$1" "Create home directory" 76
-oneCommand "sudo chown -R $1 /var/$1" "Set home directory ownership" 77
-oneCommand "sudo dscl . -create /Users/$1 NFSHomeDirectory /var/$1" "Set home directory" 78
-oneCommand "sudo dscl . -create /Users/$1 UserShell /bin/bash" "Set user shell" 79
+oneCommand "sudo mkdir /var/$1" "Create home directory" 77
+oneCommand "sudo chown -R $1 /var/$1" "Set home directory ownership" 78
+oneCommand "sudo dscl . -create /Users/$1 NFSHomeDirectory /var/$1" "Set home directory" 79
+oneCommand "sudo dscl . -create /Users/$1 UserShell /bin/bash" "Set user shell" 80
 printMessage "Home directory and user shell set for user '$1'"
 printMessage "User '$1' setup completed"
 

@@ -73,7 +73,7 @@ if [ "$1" == "grant" ]; then
     echo "Adding '$2' to admin group with '$3'"
     echo "You may need to enter your su password twice"
     echo "(debug) this is now the su command"
-    su $3 -c "sudo dscl . -append /Groups/admin GroupMembers $guid"
+    su $3 -c "sudo dscl . -append /Groups/admin GroupMembers $guid && sudo dscl . -append /Groups/admin GroupMembership $2"
     echo "(debug) about to check if '$2' is a member of admin"
     if "$location/$checkuserscript" member $2 admin; then
         echo "YES: User '$2' is now a member of admin group"
@@ -92,7 +92,7 @@ else
     echo "Removing '$2' from admin group with '$3'"
     echo "You may need to enter your su password twice"
     echo "(debug) this is now the su command"
-    su $3 -c "sudo dscl . -delete /Groups/admin GroupMembers $guid"
+    su $3 -c "sudo dscl . -delete /Groups/admin GroupMembers $guid && sudo dscl . -delete /Groups/admin GroupMembership $2"
     echo "(debug) about to check if '$2' is a member of admin"
     if ! "$location/$checkuserscript" member $2 admin; then
         echo "YES: User '$2' is no longer a member of admin group"

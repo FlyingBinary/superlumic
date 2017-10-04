@@ -72,7 +72,9 @@ if [ "$1" == "member" ]; then
     fi
     member=$(dscl . -read /Groups/$3 GroupMembers | grep "$guid")
     echo "(debug) member result='$member'"
-    if [ ! -z "$member" ]; then
+    membership=$(dscl . -read /Groups/$3 GroupMembership | grep "$2")
+    echo "(debug) membership result='$membership'"
+    if [ ! -z "$member" ] || [ ! -z "$membership" ]; then
         printMessage "YES: Found user '$2' in group '$3'"
         exit 0
     else
