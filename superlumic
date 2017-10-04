@@ -172,32 +172,32 @@ if [ ! -z "$admin" ]; then
     fi
 fi
 
-#        setStatusMessage "Checking if we need to ask for a sudo password"
-#
-#        sudo -v
-#        export ANSIBLE_ASK_SUDO_PASS=True
-#
-#        setStatusMessage "Keep-alive: update existing sudo time stamp until we are finished"
-#
-#        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+setStatusMessage "Checking if we need to ask for a sudo password"
 
-#        export HOMEBREW_CASK_OPTS="--appdir=/Applications"
-#
-#        if [[ ! -f "/Library/Developer/CommandLineTools/usr/bin/clang" ]]; then
-#            setStatusMessage "Install the CLT"
-#            install_clt
-#        fi
+sudo -v
+export ANSIBLE_ASK_SUDO_PASS=True
 
-#        # Install Ansible
-#        if ! exists pip; then
-#            setStatusMessage "Install PIP"
-#            sudo easy_install --quiet pip
-#        fi
-#        if ! exists ansible; then
-#            setStatusMessage "Install Ansible"
-#            pip install --upgrade setuptools --user python
-#            sudo pip install -q ansible
-#        fi
+setStatusMessage "Keep-alive: update existing sudo time stamp until we are finished"
+
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
+export HOMEBREW_CASK_OPTS="--appdir=/Applications"
+
+if [[ ! -f "/Library/Developer/CommandLineTools/usr/bin/clang" ]]; then
+    setStatusMessage "Install the CLT"
+    install_clt
+fi
+
+# Install Ansible
+if ! exists pip; then
+    setStatusMessage "Install PIP"
+    sudo easy_install --quiet pip
+fi
+if ! exists ansible; then
+    setStatusMessage "Install Ansible"
+    pip install --upgrade setuptools --user python
+    sudo pip install -q ansible
+fi
 
 setStatusMessage "Create necessary folders"
 
@@ -216,19 +216,19 @@ if [ ! -z "$admin" ]; then
     copyScript listmembers
 fi
 
-#        if [ -d "/usr/local/superlumic/config" ]; then
-#            setStatusMessage "Update your config from git"
-#            cd /usr/local/superlumic/config
-#            git pull -q
-#        else
-#            if [ ! -z "$repo" ]; then
-#                setStatusMessage "Getting your config from your fork"
-#                git clone -q $1 /usr/local/superlumic/config
-#            else
-#                setStatusMessage "Getting the default config"
-#                git clone -q https://github.com/FlyingBinary/superlumic-config.git /usr/local/superlumic/config
-#            fi
-#        fi
+if [ -d "/usr/local/superlumic/config" ]; then
+    setStatusMessage "Update your config from git"
+    cd /usr/local/superlumic/config
+    git pull -q
+else
+    if [ ! -z "$repo" ]; then
+        setStatusMessage "Getting your config from your fork"
+        git clone -q $1 /usr/local/superlumic/config
+    else
+        setStatusMessage "Getting the default config"
+        git clone -q https://github.com/FlyingBinary/superlumic-config.git /usr/local/superlumic/config
+    fi
+fi
 
 cd /usr/local/superlumic
 
@@ -236,21 +236,21 @@ setStatusMessage "Create ansible.cfg"
 
 { echo '[defaults]'; echo 'roles_path=/usr/local/superlumic/roles:/usr/local/superlumic/config/roles'; } > ansible.cfg
 
-#        setStatusMessage "Get all the required roles"
-#
-#        ansible-galaxy install -f -r config/requirements.yml -p roles
+setStatusMessage "Get all the required roles"
 
-#        if [ -f "config/$profile.yml" ]; then
-#            setStatusMessage "Running the ansible playbook for $profile"
-#            ansible-playbook -i "localhost," config/$profile.yml
-#        else
-#            if [ "travis" = "$profile" ]; then
-#                setStatusMessage "Running the ansible playbook for $profile but use roderik.yml as fallback"
-#                ansible-playbook -i "localhost," config/roderik.yml
-#            else
-#                triggerError "No playbook for $profile found"
-#            fi
-#        fi
+ansible-galaxy install -f -r config/requirements.yml -p roles
+
+if [ -f "config/$profile.yml" ]; then
+    setStatusMessage "Running the ansible playbook for $profile"
+    ansible-playbook -i "localhost," config/$profile.yml
+else
+    if [ "travis" = "$profile" ]; then
+        setStatusMessage "Running the ansible playbook for $profile but use roderik.yml as fallback"
+        ansible-playbook -i "localhost," config/roderik.yml
+    else
+        triggerError "No playbook for $profile found"
+    fi
+fi
 
 if [ ! -z "$admin" ]; then
     setStatusMessage "Revoking admin privilege"
