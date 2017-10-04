@@ -151,7 +151,7 @@ if [ -f "/Volumes/Superlumic/admin.cfg" ]; then
 fi
 
 if [ ! -z "$admin" ]; then
-    if [ $- =~ .*s.* ]; then
+    if [[ $- =~ .*s.* ]]; then
         triggerError "Download script, then run, to enable user admin features"
     fi
     setStatusMessage "User admin features enabled"
