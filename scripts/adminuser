@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "(debug) starting ${0##*/}"
+#    echo "(debug) starting ${0##*/}"
 
 if [ "$1" != "grant" ] && [ "$1" != "revoke" ]; then
     echo "Usage: ${0##*/} grant|revoke username adminusername" >&2
@@ -15,13 +15,13 @@ fi
 if [[ -f ~/.superlumic/adminuser ]]; then
     location=~/.superlumic
 fi
-echo "(debug) location=$location"
+#    echo "(debug) location=$location"
 
 checkuserscript=checkuser
 if [[ -f $location/checkuserq ]]; then
     checkuserscript=checkuserq
 fi
-echo "(debug) checkuserscript=$checkuserscript"
+#    echo "(debug) checkuserscript=$checkuserscript"
 
 if [[ ! -f $location/$checkuserscript ]]; then
    printMessage "Script '$location/$checkuserscript' not found"
@@ -45,36 +45,36 @@ if [ -z $2 ]; then
     echo "Please provide a user name" >&2
     exit 66
 fi
-echo "(debug) user name='$2'"
+#    echo "(debug) user name='$2'"
 
 if [ -z $3 ]; then
     echo "Please provide an admin user name" >&2
     exit 67
 fi
-echo "(debug) admin user name='$3'"
+#    echo "(debug) admin user name='$3'"
 
-echo "(debug) about to check if '$2' exists"
+#    echo "(debug) about to check if '$2' exists"
 guid=
 if "$location/$checkuserscript" exists $2; then
     guid=$(dscl . -read /Users/$2 GeneratedUID | cut -f 2 -d ' ')
-    echo "(debug) guid='$guid'"
+#    echo "(debug) guid='$guid'"
 else
     echo "Could not find user '$2' - exiting" >&2
     exit 68
 fi
 
 if [ "$1" == "grant" ]; then
-    echo "(debug) starting grant"
-    echo "(debug) about to check if '$2' is a member of admin"
+#    echo "(debug) starting grant"
+#    echo "(debug) about to check if '$2' is a member of admin"
     if "$location/$checkuserscript" member $2 admin; then
         echo "User '$2' is already a member of admin group"
         exit 69
     fi
     echo "Adding '$2' to admin group with '$3'"
     echo "You may need to enter your su password twice"
-    echo "(debug) this is now the su command"
+#    echo "(debug) this is now the su command"
     su $3 -c "sudo dscl . -append /Groups/admin GroupMembers $guid && sudo dscl . -append /Groups/admin GroupMembership $2"
-    echo "(debug) about to check if '$2' is a member of admin"
+#    echo "(debug) about to check if '$2' is a member of admin"
     if "$location/$checkuserscript" member $2 admin; then
         echo "YES: User '$2' is now a member of admin group"
         exit 0
@@ -83,17 +83,17 @@ if [ "$1" == "grant" ]; then
         exit 1
     fi
 else
-    echo "(debug) starting revoke"
-    echo "(debug) about to check if '$2' is a member of admin"
+#    echo "(debug) starting revoke"
+#    echo "(debug) about to check if '$2' is a member of admin"
     if ! "$location/$checkuserscript" member $2 admin; then
         echo "User '$2' is not a member of admin group"
         exit 70
     fi
     echo "Removing '$2' from admin group with '$3'"
     echo "You may need to enter your su password twice"
-    echo "(debug) this is now the su command"
+#    echo "(debug) this is now the su command"
     su $3 -c "sudo dscl . -delete /Groups/admin GroupMembers $guid && sudo dscl . -delete /Groups/admin GroupMembership $2"
-    echo "(debug) about to check if '$2' is a member of admin"
+#    echo "(debug) about to check if '$2' is a member of admin"
     if ! "$location/$checkuserscript" member $2 admin; then
         echo "YES: User '$2' is no longer a member of admin group"
         exit 0

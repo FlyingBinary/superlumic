@@ -1,6 +1,6 @@
-#!/bin/bash -v
+#!/bin/bash
 
-echo "(debug) bash switches='$-'"
+#    echo "(debug) bash switches='$-'"
 
 BGreen='\e[1;32m'       # Green
 BRed='\e[1;31m'         # Red
@@ -90,11 +90,11 @@ function makeFullyQualified {
     # Full url
     if [[ $1 =~ ^.+\..+\/.+\..+$ ]]; then
         if [[ $1 =~ ^http(?:s)*:\/\/.+$ ]]; then
-            echo "(debug) repo '$repo' matches full url with scheme"
+#            echo "(debug) repo '$repo' matches full url with scheme"
             repo=$1
             return 0
         else
-            echo "(debug) repo '$repo' matches full url without scheme"
+#            echo "(debug) repo '$repo' matches full url without scheme"
             repo="https://$1"
             return 0
         fi
@@ -102,24 +102,24 @@ function makeFullyQualified {
     # Github name and role name
     if [[ $1 =~ ^.+\/.+$ ]]; then
         if [[ $1 =~ ^.+\.git$ ]]; then
-            echo "(debug) repo '$repo' matches github name and role name with extension"
+#            echo "(debug) repo '$repo' matches github name and role name with extension"
             repo="https://github.com/$1"
             return 0
         else
-            echo "(debug) repo '$repo' matches github name and role name without extension"
+#            echo "(debug) repo '$repo' matches github name and role name without extension"
             repo="https://github.com/$1.git"
             return 0
         fi
     fi
     # Github name only
     if [[ $1 =~ ^[a-zA-Z0-9_\-]+$ ]]; then
-        echo "(debug) repo '$repo' matches github name only"
+#        echo "(debug) repo '$repo' matches github name only"
         repo="https://github.com/$1/superlumic-config.git"
         return 0
     fi
     # Give up - in all other cases assume the provided string represents a usable url
     # and leave the value as is
-    echo "(debug) repo '$repo' doesn't match anything - given up"
+#    echo "(debug) repo '$repo' doesn't match anything - given up"
     repo=$1
     return 1
 }
@@ -128,7 +128,7 @@ repo=$1
 profile=$USER
 username=$profile
 if [ ! -z "$1" ]; then
-    echo "(debug) "
+#    echo "(debug) "
     makeFullyQualified $repo
 fi
 setStatusMessage "Using repo '$repo'"
@@ -151,6 +151,10 @@ if [ -f "/Volumes/Superlumic/admin.cfg" ]; then
 fi
 
 if [ ! -z "$admin" ]; then
+    if [ $- =~ .*s.* ]; then
+        triggerError "Download script, then run, to enable user admin features"
+    fi
+    setStatusMessage "User admin features enabled"
     source "/Volumes/Superlumic/admin.cfg"
     mkdir -p $HomeScriptDir
     getScript adminuser
@@ -160,11 +164,9 @@ if [ ! -z "$admin" ]; then
     if $HomeScriptDir/checkuser "exists" "$adminUsername"; then
         # We already created the admin user, and downgraded this user
         # Restore admin (and therefore sudo) privilege for this user
-#        bash -i $HOMESCRIPTDIR/subootstrap "$adminUsername"
         setStatusMessage "Granting admin privilege"
         $HomeScriptDir/adminuser "grant" "$username" "$adminUsername"
     else
-#        $HOMESCRIPTDIR/subootstrap "$username"
         setStatusMessage "Creating admin user "
         $HomeScriptDir/createadministrator "$adminUsername" "$adminUID" "$adminRealname" "$adminPicture"
     fi

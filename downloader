@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-echo "(debug) bash switches='$-'"
+#    echo "(debug) bash switches='$-'"
 
 echo "Downloading superlumic configuration script"
-curl https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/superlumic > ~/superlumic
+curl -s https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/superlumic > ~/superlumic
 chmod 755 ~/superlumic
 
 echo "Usage: '~/superlumic config profile [user]' to configure"
