@@ -216,6 +216,16 @@ if [ ! -z "$admin" ]; then
     copyScript listmembers
 fi
 
+if [ -d "/usr/local/superlumic/osx-check" ]; then
+    setStatusMessage "Update OSX Config Check"
+    cd /usr/local/superlumic/osx-check
+    git pull -q
+else
+    setStatusMessage "Getting OSC Config Check"
+    git clone -q https://github.com/FlyingBinary/osx-config-check.git /usr/local/superlumic/osx-check
+    sudo ln -fs /usr/local/superlumic/osx-check/osx-check $LocalBinDir/osx-check
+fi
+
 if [ -d "/usr/local/superlumic/config" ]; then
     setStatusMessage "Update your config from git"
     cd /usr/local/superlumic/config
