@@ -221,7 +221,7 @@ if [ -d "/usr/local/superlumic/osx-check" ]; then
     cd /usr/local/superlumic/osx-check
     git pull -q
 else
-    setStatusMessage "Getting OSC Config Check"
+    setStatusMessage "Getting OSX Config Check"
     git clone -q https://github.com/FlyingBinary/osx-config-check.git /usr/local/superlumic/osx-check
     sudo ln -fs /usr/local/superlumic/osx-check/osx-check $LocalBinDir/osx-check
 fi
