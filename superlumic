@@ -168,7 +168,7 @@ if [ ! -z "$admin" ]; then
         $HomeScriptDir/adminuser "grant" "$username" "$adminUsername"
     else
         setStatusMessage "Creating admin user "
-        $HomeScriptDir/createadministrator "$adminUsername" "$adminUID" "$adminRealname" "$adminPicture"
+        $HomeScriptDir/createadministrator $adminUsername $adminUID $adminRealname $adminPicture
     fi
 fi
 
