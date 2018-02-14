@@ -202,12 +202,13 @@ fi
 setStatusMessage "Create necessary folders"
 
 sudo mkdir -p /usr/local/superlumic
-sudo mkdir -p /usr/local/superlumic/roles
+# Need to change permissions for macOS High Sierra, as /usr/local is now within SIP
+sudo chown -R $(whoami):admin /usr/local/superlumic
 sudo chmod -R g+rwx /usr/local
-sudo chgrp -R admin /usr/local
+sudo mkdir -p /usr/local/superlumic/roles
 
 if [ ! -z "$admin" ]; then
-    sudo mkdir -p /usr/local/superlumic/scripts
+    sudo mkdir -p $ScriptDir
     setStatusMessage "Copying scripts"
 
     copyScript checkuser
