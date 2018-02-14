@@ -203,7 +203,7 @@ setStatusMessage "Create necessary folders"
 
 sudo mkdir -p /usr/local/superlumic
 # Need to change permissions for macOS High Sierra, as /usr/local is now within SIP
-sudo chown -R $(whoami):admin /usr/local/superlumic
+sudo chown -R $(whoami):admin /usr/local/*
 sudo chmod -R g+rwx /usr/local
 mkdir -p /usr/local/superlumic/roles
 
