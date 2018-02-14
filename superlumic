@@ -205,10 +205,10 @@ sudo mkdir -p /usr/local/superlumic
 # Need to change permissions for macOS High Sierra, as /usr/local is now within SIP
 sudo chown -R $(whoami):admin /usr/local/superlumic
 sudo chmod -R g+rwx /usr/local
-sudo mkdir -p /usr/local/superlumic/roles
+mkdir -p /usr/local/superlumic/roles
 
 if [ ! -z "$admin" ]; then
-    sudo mkdir -p $ScriptDir
+    mkdir -p $ScriptDir
     setStatusMessage "Copying scripts"
 
     copyScript checkuser
