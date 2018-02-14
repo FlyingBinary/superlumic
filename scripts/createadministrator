@@ -61,8 +61,8 @@ if [[ ! -f $location/$checkuserscript ]]; then
    exit 65
 fi
 
-if [ -z $2 ] || [[ ! $2 =~ ^4[0-9][1-9]$ ]]; then
-    printMessage "Please provide a unique user id in the range 401-499" 2
+if [ -z $2 ] || [[ ! $2 =~ ^5[5-9][0-9]$ ]]; then
+    printMessage "Please provide a unique user id in the range 550-599" 2
     exit 66
 fi
 #    echo "(debug) user id='$2'"
