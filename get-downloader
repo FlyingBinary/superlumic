@@ -1,0 +1,5 @@
+# This file must be sourced
+# Save a local copy (for example on a flashdrive, with the admin.cfg file)
+# for ease of access
+
+curl -s https://raw.githubusercontent.com/FlyingBinary/superlumic/fbmaster/downloader | bash -s
