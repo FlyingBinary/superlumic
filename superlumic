@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 #    echo "(debug) bash switches='$-'"
 
@@ -199,13 +199,15 @@ if ! exists ansible; then
     sudo pip install -q ansible
 fi
 
+setStatusMessage "Set folder permissions"
+# Need to change permissions for macOS High Sierra, as /usr/local is now within SIP
+sudo chown -R "$(whoami)":admin /usr/local
+sudo chmod -R g+rwx /usr/local
+
 setStatusMessage "Create necessary folders"
 
 sudo mkdir -p /usr/local/superlumic
-# Need to change permissions for macOS High Sierra, as /usr/local is now within SIP
-sudo chown -R $(whoami):admin /usr/local/*
-sudo chmod -R g+rwx /usr/local
-mkdir -p /usr/local/superlumic/roles
+sudo mkdir -p /usr/local/superlumic/roles
 
 if [ ! -z "$admin" ]; then
     mkdir -p $ScriptDir
@@ -245,7 +247,13 @@ cd /usr/local/superlumic
 
 setStatusMessage "Create ansible.cfg"
 
-{ echo '[defaults]'; echo 'roles_path=/usr/local/superlumic/roles:/usr/local/superlumic/config/roles'; } > ansible.cfg
+{ echo '[defaults]'; echo 'roles_path=/usr/local/superlumic/roles:/usr/local/superlumic/config/roles'; echo 'deprecation_warnings=False';} > ansible.cfg
+
+setStatusMessage "Checking for encrypted vault files"
+if grep --silent -R "$ANSIBLE_VAULT;.*;AES256" /usr/local/superlumic/config/ ; then
+    echo 'ask_vault_pass=yes' >> ansible.cfg
+    setStatusMessage "Set Ansible to ask for the Vault Password"
+fi
 
 setStatusMessage "Get all the required roles"
 
@@ -253,11 +261,11 @@ ansible-galaxy install -f -r config/requirements.yml -p roles
 
 if [ -f "config/$profile.yml" ]; then
     setStatusMessage "Running the ansible playbook for $profile"
-    ansible-playbook -i "localhost," config/$profile.yml
+    ansible-playbook -i "localhost," config/$profile.yml $ANSIBLE_EXTRA_OPTS
 else
     if [ "travis" = "$profile" ]; then
         setStatusMessage "Running the ansible playbook for $profile but use roderik.yml as fallback"
-        ansible-playbook -i "localhost," config/roderik.yml
+        ansible-playbook -i "localhost," config/roderik.yml $ANSIBLE_EXTRA_OPTS
     else
         triggerError "No playbook for $profile found"
     fi
